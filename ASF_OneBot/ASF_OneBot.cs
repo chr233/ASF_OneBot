@@ -1,4 +1,3 @@
-using ArchiSteamFarm.Core;
 using ArchiSteamFarm.Plugins.Interfaces;
 using ArchiSteamFarm.Steam;
 using ASF_OneBot.Localization;
@@ -10,38 +9,36 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading.Tasks;
+using ASF_OneBot.API;
 using static ASF_OneBot.Utils;
 
 namespace ASF_OneBot
 {
 
     [Export(typeof(IPlugin))]
-    internal sealed class ASF_OneBot : IASF, IBotCommand2 ,IBot, IBotConnection, IBotFriendRequest, IBotMessage, IBotModules
+    internal sealed class ASF_OneBot : IASF, IBotCommand2, IBot, IBotConnection, IBotFriendRequest, IBotMessage, IBotModules
     {
         public string Name => nameof(ASF_OneBot);
-        public Version Version => typeof(ASF_OneBot).Assembly.GetName().Version ?? throw new InvalidOperationException(nameof(Version));
-
-        internal readonly Dictionary<string, IBot> RegisteredAdapter = new();
+        public Version Version => Global.Version;
 
         [JsonProperty]
-        public GlobalConfig? globalconfig;
+        public Config? OneBotConfig => Global.GlobalConfig;
+
+        internal readonly Dictionary<string, IBot> RegisteredAdapter = new();
 
         public Task OnLoaded()
         {
             ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.PluginAbout));
 
-            Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.PluginVer, nameof(ASF_OneBot), version.Major, version.Minor, version.Build, version.Revision));
+            ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.PluginVer, nameof(ASF_OneBot), Version.Major, Version.Minor, Version.Build, Version.Revision));
             ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.PluginContact));
 
             return Task.CompletedTask;
         }
 
-        public Task OnASFInit(IReadOnlyDictionary<string, JToken> additionalConfigProperties = null)
+        public async Task OnASFInit(IReadOnlyDictionary<string, JToken> additionalConfigProperties = null)
         {
-            
-
-            GlobalConfig? config = null;
+            Config? config = null;
 
             if (additionalConfigProperties != null)
             {
@@ -51,19 +48,19 @@ namespace ASF_OneBot
                     {
                         if (configProperty == "ASFOneBotConfig")
                         {
-                            config = configValue.ToObject<GlobalConfig>();
+                            config = configValue.ToObject<Config>();
                             break;
                         }
                     }
                     catch (Exception e)
                     {
-                        ASF.ArchiLogger.LogGenericException(e);
+                        ASFLogger.LogGenericException(e);
                         ASFLogger.LogGenericWarning(string.Format(CurrentCulture, Langs.ReadConfigError));
                     }
                 }
             }
 
-            config ??= new GlobalConfig();
+            config ??= new();
 
             ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.CurrentMode, config.WhiteListMode ? Langs.WhiteListMode : Langs.BlackListMode));
 
@@ -72,10 +69,29 @@ namespace ASF_OneBot
                 ASFLogger.LogGenericWarning(string.Format(CurrentCulture, Langs.NoBotEffected));
             }
 
-            globalconfig = config;
+            Global.GlobalConfig = config;
+
 
             ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.TextLine));
-            return Task.CompletedTask;
+
+            if (config.WSConfig.Enable)
+            {
+                SocketConfig wsConfig = config.WSConfig;
+
+                await SetupKestrel.Start().ConfigureAwait(false);
+
+                ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.WebSocketEnabled, wsConfig.Host, wsConfig.Port));
+            }
+
+            if (config.ReWSConfig.Enable)
+            {
+                string host = config.ReWSConfig.Host;
+                int port = config.ReWSConfig.Port;
+                ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.ReWebSocketEnabled, host, port));
+            }
+
+
+            //return Task.CompletedTask;
         }
 
         public async Task<string> OnBotCommand(Bot bot, EAccess access, string message, string[] args, ulong steamID = 0)

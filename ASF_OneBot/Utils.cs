@@ -37,6 +37,9 @@ namespace ASF_OneBot {
 		/// </summary>
 		internal static Uri SteamCommunityURL => ArchiWebHandler.SteamCommunityURL;
 
-		internal static ArchiLogger ASFLogger => ASF.ArchiLogger;
+		/// <summary>
+        /// 日志
+        /// </summary>
+        internal static ArchiLogger ASFLogger => ASF.ArchiLogger;
 	}
 }

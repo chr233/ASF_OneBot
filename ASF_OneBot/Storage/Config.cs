@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using ArchiSteamFarm.IPC.Integration;
 using Newtonsoft.Json;
+using System.Net;
 
 
 namespace ASF_OneBot.Storage
@@ -12,13 +13,16 @@ namespace ASF_OneBot.Storage
     ///
 
     [SuppressMessage("ReSharper", "ClassCannotBeInstantiated")]
-    internal sealed class GlobalConfig
+    internal sealed class Config
     {
         /// <summary>
         /// 鉴权Token
         /// </summary>
-        [JsonProperty(Required = Required.Default)]
+        [JsonProperty(Required = Required.DisallowNull)]
         internal string AccessToken { get; private set; } = "";
+
+        [JsonProperty(Required = Required.DisallowNull)]
+        internal bool Debug { get; private set; } = false;
 
         /// <summary>
         /// 白名单模式 (默认只监听 BotNameList 中的 Bot)
@@ -36,31 +40,46 @@ namespace ASF_OneBot.Storage
         /// 正向WebSocket服务器设置
         /// </summary>
         [JsonProperty(Required = Required.DisallowNull)]
-        internal WebSocketConfig WSConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 6700 };
+        internal SocketConfig WSConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 6700 };
 
         /// <summary>
         /// 反向WebSocket服务器配置
         /// </summary>
         [JsonProperty(Required = Required.DisallowNull)]
-        internal WebSocketConfig ReWSConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 6800 };
+        internal SocketConfig ReWSConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 6800 };
+
+        /// <summary>
+        /// 正向Http服务器设置
+        /// </summary>
+        [JsonProperty(Required = Required.DisallowNull)]
+        internal SocketConfig HttpConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 7070 };
+
+        /// <summary>
+        /// 反向Http服务器配置
+        /// </summary>
+        [JsonProperty(Required = Required.DisallowNull)]
+        internal SocketConfig ReHttpConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 8080 };
 
         [JsonConstructor]
-        internal GlobalConfig() { }
+        internal Config() { }
     }
 
-    internal sealed class WebSocketConfig
+    /// <summary>
+    /// 接口配置
+    /// </summary>
+    internal sealed class SocketConfig
     {
         /// <summary>
-        /// 启用WebSockets服务
+        /// 启用服务
         /// </summary>
         public bool Enable;
         /// <summary>
-        /// WebSockets主机
+        /// 主机
         /// </summary>
         public string Host;
         /// <summary>
-        /// WebSockets端口
+        /// 端口
         /// </summary>
-        public uint Port;
+        public int Port;
     }
 }
