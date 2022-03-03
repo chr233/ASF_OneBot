@@ -10,19 +10,19 @@ namespace ASF_OneBot.API.Data
     public sealed class BaseResponse
     {
         [JsonProperty("status", Required = Required.Always)]
-        public string Status { get; private set; } = "ok";
+        public string Status { get; internal set; } = "ok";
 
         [JsonProperty("retcode", Required = Required.Always)]
-        public int RetCode { get; private set; } = 0;
+        public int RetCode { get; internal set; } = 0;
 
         [JsonProperty("data", Required = Required.AllowNull)]
-        public object Data { get; private set; } = null;
+        public object Data { get; internal set; } = null;
 
         [JsonProperty("message", Required = Required.Always)]
-        public string? Message { get; private set; } = "";
+        public string? Message { get; internal set; } = "";
 
         [JsonProperty("echo", Required = Required.Default)]
-        public string Echo { get; private set; } = null;
+        public string Echo { get; internal set; } = null;
     }
 
    

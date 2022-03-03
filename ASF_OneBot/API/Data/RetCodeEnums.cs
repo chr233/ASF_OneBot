@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace ASF_OneBot.API.Data
 {
-    internal class RetCodeEnums
+    public static class RetCodeEnums
     {
         /// <summary>
         /// 状态码
         /// </summary>
-        public enum RetCode : int
+        public  enum RetCode : int
         {
             /// <summary>成功</summary>
             Success = 0,

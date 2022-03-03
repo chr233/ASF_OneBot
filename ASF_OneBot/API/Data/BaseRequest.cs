@@ -11,12 +11,12 @@ namespace ASF_OneBot.API.Data
     public class BaseRequest
     {
         [JsonProperty("action", Required = Required.Always)]
-        public string Action { get; private set; } = "ok";
+        public string Action { get; internal set; } = "ok";
 
         //[JsonProperty("params", Required = Required.Always)]
-        public object Params { get; private set; } = null;
+        public object Params { get; internal set; } = null;
 
         [JsonProperty("echo", Required = Required.Default)]
-        public string Echo { get; private set; } = null;
+        public string Echo { get; internal set; } = null;
     }
 }

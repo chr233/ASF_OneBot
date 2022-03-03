@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ASF_OneBot.API.Callback
 {
-    internal class SocketOnClose
+    internal static class SocketOnClose
     {
 
     }

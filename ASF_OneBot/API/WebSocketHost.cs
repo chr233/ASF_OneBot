@@ -6,6 +6,8 @@ using System.Composition;
 using System.Threading.Tasks;
 using static ASF_OneBot.Utils;
 
+using ASF_OneBot.API.Callback;
+
 namespace ASF_OneBot.API
 {
     [Export]
@@ -13,11 +15,11 @@ namespace ASF_OneBot.API
     {
         internal static WebSocketServer? WsServer = null;
 
-        private static List<IWebSocketConnection> Sockets = new List<IWebSocketConnection>();
+        static private List<IWebSocketConnection> Sockets = new List<IWebSocketConnection>();
 
-        private static int ClientCount => Sockets.Count;
+        static private int ClientCount => Sockets.Count;
 
-        private static string accessToken => Global.GlobalConfig?.AccessToken;
+        static private string accessToken => Global.GlobalConfig?.AccessToken;
         /// <summary>
         /// WebSocket接口鉴权
         /// </summary>
@@ -79,8 +81,7 @@ namespace ASF_OneBot.API
                     Sockets.Add(socket);
                     ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.WSClientConnected, socket.GetHashCode(), ClientCount));
                     socket.OnMessage = async (s) => {
-
-                        ASFLogger.LogGenericInfo($"{socket}, {s}");
+                        await SocketOnMsg.OnMessage(socket, s).ConfigureAwait(false);
                     };
 
                     socket.OnClose = () => {
@@ -117,5 +118,7 @@ namespace ASF_OneBot.API
 
             WsServer.Dispose();
         }
+
+
     }
 }

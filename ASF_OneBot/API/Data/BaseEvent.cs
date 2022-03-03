@@ -12,28 +12,28 @@ namespace ASF_OneBot.API.Data
     public class BaseEvent
     {
         [JsonProperty("id", Required = Required.Always)]
-        public string ID { get; private set; }
+        public string ID { get; internal set; }
 
         [JsonProperty("impl", Required = Required.Always)]
-        public string Impl { get; private set; } = Global.Implement;
+        public string Impl { get; internal set; } = Global.Implement;
 
         [JsonProperty("platform", Required = Required.Always)]
-        public string Platform { get; private set; } = Global.Platform;
+        public string Platform { get; internal set; } = Global.Platform;
 
         [JsonProperty("self_id", Required = Required.Always)]
-        public string SelfID { get; private set; }
+        public string SelfID { get; internal set; }
 
         [JsonProperty("time", Required = Required.Always)]
-        public double Time { get; private set; } = Global.TimeStamp;
+        public double Time { get; internal set; } = Global.TimeStamp;
 
         [JsonProperty("type", Required = Required.Always)]
-        public string Type { get; private set; } = "message";
+        public string Type { get; internal set; } = "message";
 
         [JsonProperty("detail_type", Required = Required.Always)]
-        public string DetailType { get; private set; } = "";
+        public string DetailType { get; internal set; } = "";
 
         [JsonProperty("sub_type", Required = Required.Always)]
-        public string SubType { get; private set; } = "";
+        public string SubType { get; internal set; } = "";
     }
 
     

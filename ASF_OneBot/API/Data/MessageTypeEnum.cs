@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ASF_OneBot.API.Data
 {
-    internal class MessageTypeEnum
+    public class MessageTypeEnum
     {
         public enum MessageType
         {

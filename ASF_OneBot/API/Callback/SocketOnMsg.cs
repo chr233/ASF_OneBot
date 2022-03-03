@@ -7,11 +7,12 @@ using Fleck;
 using Newtonsoft.Json;
 using ASF_OneBot.API.Data;
 
-namespace ASF_OneBot.API.Event
+namespace ASF_OneBot.API.Callback
 {
-    internal class SocketOnMsg
+    internal static class SocketOnMsg
+
     {
-        public async Task SocketOnMessage(IWebSocketConnection socket, string raw)
+        public static async Task OnMessage(IWebSocketConnection socket, string raw)
         {
             try
             {
@@ -21,15 +22,23 @@ namespace ASF_OneBot.API.Event
                 string action = request.Action;
                 object param = request.Params;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                await socket.Send(@"{""status"": ""failed"",""retcode"": 1400,\"data\": null}");
+                BaseResponse errorResponse = new() {
+                    Status = "failed",
+                    RetCode = (int)RetCodeEnums.RetCode.InternalHandlerError,
+                    Message = $"Something went wrong {e}",
+                    Data = null
+                };
+
+                string json = JsonConvert.SerializeObject(errorResponse);
+
+                await socket.Send(json).ConfigureAwait(false);
                 return;
             }
 
-            JToken token = _cqActionHandler.Process(action, payload);
-            token["echo"] = echo;
-            await socket.Send(token.ToString());
+
+            //await socket.Send(token.ToString()).ConfigureAwait(false);
         }
     }
 }
