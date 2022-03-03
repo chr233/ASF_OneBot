@@ -88,6 +88,15 @@ namespace ASF_OneBot.Localization {
         }
         
         /// <summary>
+        ///   查找类似 暂不支持此功能 的本地化字符串。
+        /// </summary>
+        internal static string NotSupportedYet {
+            get {
+                return ResourceManager.GetString("NotSupportedYet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 正向/反向 WebSocket 均未运行, 请参阅官方文档进行配置. 的本地化字符串。
         /// </summary>
         internal static string NoWebSocketEnabled {
@@ -150,7 +159,7 @@ namespace ASF_OneBot.Localization {
         }
         
         /// <summary>
-        ///   查找类似 ==================== 的本地化字符串。
+        ///   查找类似 ======================================== 的本地化字符串。
         /// </summary>
         internal static string TextLine {
             get {
@@ -173,6 +182,33 @@ namespace ASF_OneBot.Localization {
         internal static string WhiteListMode {
             get {
                 return ResourceManager.GetString("WhiteListMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 WS客户端 {0} 鉴权失败, 拒绝连接, 连接数 {1} 的本地化字符串。
+        /// </summary>
+        internal static string WSClientAuthFailed {
+            get {
+                return ResourceManager.GetString("WSClientAuthFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 WS客户端 {0} 连接成功, 连接数 {1} 的本地化字符串。
+        /// </summary>
+        internal static string WSClientConnected {
+            get {
+                return ResourceManager.GetString("WSClientConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 WS客户端 {0} 断开连接, 连接数 {1} 的本地化字符串。
+        /// </summary>
+        internal static string WSClientDisconnected {
+            get {
+                return ResourceManager.GetString("WSClientDisconnected", resourceCulture);
             }
         }
     }

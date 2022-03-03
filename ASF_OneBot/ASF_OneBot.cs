@@ -71,27 +71,25 @@ namespace ASF_OneBot
 
             Global.GlobalConfig = config;
 
-
             ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.TextLine));
 
             if (config.WSConfig.Enable)
             {
                 SocketConfig wsConfig = config.WSConfig;
 
-                await SetupKestrel.Start().ConfigureAwait(false);
+                await WebSocketHost.Start(wsConfig).ConfigureAwait(false);
 
                 ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.WebSocketEnabled, wsConfig.Host, wsConfig.Port));
             }
 
             if (config.ReWSConfig.Enable)
             {
-                string host = config.ReWSConfig.Host;
-                int port = config.ReWSConfig.Port;
-                ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.ReWebSocketEnabled, host, port));
+                SocketConfig reWsConfig = config.ReWSConfig;
+
+                ASFLogger.LogGenericError(string.Format(CurrentCulture, Langs.NotSupportedYet));
+
+                //ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.ReWebSocketEnabled, reWsConfig.Host, reWsConfig.Port));
             }
-
-
-            //return Task.CompletedTask;
         }
 
         public async Task<string> OnBotCommand(Bot bot, EAccess access, string message, string[] args, ulong steamID = 0)

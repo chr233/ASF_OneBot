@@ -10,8 +10,6 @@ namespace ASF_OneBot.Storage
     /// <summary>
     /// 应用配置。
     /// </summary>
-    ///
-
     [SuppressMessage("ReSharper", "ClassCannotBeInstantiated")]
     internal sealed class Config
     {
@@ -47,18 +45,6 @@ namespace ASF_OneBot.Storage
         /// </summary>
         [JsonProperty(Required = Required.DisallowNull)]
         internal SocketConfig ReWSConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 6800 };
-
-        /// <summary>
-        /// 正向Http服务器设置
-        /// </summary>
-        [JsonProperty(Required = Required.DisallowNull)]
-        internal SocketConfig HttpConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 7070 };
-
-        /// <summary>
-        /// 反向Http服务器配置
-        /// </summary>
-        [JsonProperty(Required = Required.DisallowNull)]
-        internal SocketConfig ReHttpConfig { get; private set; } = new() { Enable = false, Host = "127.0.0.1", Port = 8080 };
 
         [JsonConstructor]
         internal Config() { }

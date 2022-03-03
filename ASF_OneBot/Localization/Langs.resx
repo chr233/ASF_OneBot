@@ -142,7 +142,7 @@
     <value>插件当前工作模式: {0}</value>
   </data>
   <data name="TextLine" xml:space="preserve">
-    <value>====================</value>
+    <value>========================================</value>
   </data>
   <data name="PluginAbout" xml:space="preserve">
     <value>
@@ -160,5 +160,17 @@
   </data>
   <data name="PluginContact" xml:space="preserve">
     <value>作者 Chr_, 联系方式 chr@chrxw.com</value>
+  </data>
+  <data name="NotSupportedYet" xml:space="preserve">
+    <value>暂不支持此功能</value>
+  </data>
+  <data name="WSClientAuthFailed" xml:space="preserve">
+    <value>WS客户端 {0} 鉴权失败, 拒绝连接, 连接数 {1}</value>
+  </data>
+  <data name="WSClientConnected" xml:space="preserve">
+    <value>WS客户端 {0} 连接成功, 连接数 {1}</value>
+  </data>
+  <data name="WSClientDisconnected" xml:space="preserve">
+    <value>WS客户端 {0} 断开连接, 连接数 {1}</value>
   </data>
 </root>

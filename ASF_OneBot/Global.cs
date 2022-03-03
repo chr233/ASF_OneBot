@@ -7,7 +7,12 @@ namespace ASF_OneBot
     {
         public static Config? GlobalConfig { get; internal set; }
 
-        public static Version? Version => typeof(ASF_OneBot).Assembly.GetName().Version;
+        public static Version? Version { get; } = typeof(ASF_OneBot).Assembly.GetName().Version;
 
+        public static string Platform { get; } = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
+
+        public static string Implement { get; } = nameof(ASF_OneBot);
+
+        public static double TimeStamp => DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000.0;
     }
 }
