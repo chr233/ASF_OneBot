@@ -8,9 +8,24 @@
 
 ---
 
-> 基于 OneBot v11 协议
+> 基于 OneBot v11 协议 和 v12 协议
 
-开发中……
+## TODO
+
+> 目前是ASF插件的形式, 正在开发独立的版本, 将能够支持更多功能
+
+- 协议支持
+  - [x] 正向 WebSocket
+  - [ ] 反向 WebSocket
+  - [ ] 正向 Http
+  - [ ] 反向 Http
+
+- API支持
+  - [x] send_private_msg
+  - [ ] 其他都不支持
+
+- 更多Future
+  - [ ] 在做了.jpg
 
 ## 下载链接
 
