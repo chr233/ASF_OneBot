@@ -17,5 +17,11 @@ namespace ASF_OneBot.Data.Requests
 
         [JsonProperty("echo", Required = Required.Default)]
         public string Echo { get; internal set; } = null;
+
+        [JsonProperty("self_id", Required = Required.Default)]
+        public long SelfID { get; internal set; } = 0;
+
+        [JsonConstructor]
+        public BaseRequest() { }
     }
 }

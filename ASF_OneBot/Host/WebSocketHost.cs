@@ -1,33 +1,34 @@
-﻿using ASF_OneBot.Localization;
+﻿using ArchiSteamFarm.Steam;
+using ASF_OneBot.Data;
+using ASF_OneBot.Data.Responses;
+using ASF_OneBot.Exceptions;
+using ASF_OneBot.Localization;
 using ASF_OneBot.Storage;
 using Fleck;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading.Tasks;
+using ASF_OneBot.API;
 using static ASF_OneBot.Utils;
-using Newtonsoft.Json;
-using System;
-using static ASF_OneBot.Host.RequestParser;
-using ASF_OneBot.Data.Requests;
-using ASF_OneBot.Data.Responses;
-using ASF_OneBot.Data;
 
 namespace ASF_OneBot.Host
 {
     [Export]
     internal static class WebSocketHost
     {
-        internal static WebSocketServer WsServer = null;
-
-        static private List<IWebSocketConnection> Sockets = new List<IWebSocketConnection>();
+        static private WebSocketServer? WsServer = null;
+        internal static bool IsWsRunning => WsServer != null;
+        internal static List<IWebSocketConnection> Sockets { get; private set; } = new List<IWebSocketConnection>();
         static private int ClientCount => Sockets.Count;
+        static private WsSocketConfig WsConfig => Global.GlobalConfig.WSConfig;
+        static private Dictionary<ulong, Tuple<Bot, IWebSocketConnection>> WsOnlineBots => Global.WsOnlineBots;
 
         /// <summary>
         /// 启动正向WebSocket服务
         /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        internal static async Task StartWsServer(SocketConfig config)
+        internal static async Task StartWsServer()
         {
             if (WsServer != null)
             {
@@ -54,7 +55,7 @@ namespace ASF_OneBot.Host
                 }
             };
 
-            WebSocketServer server = new($"ws://{config.Host}:{config.Port}") { RestartAfterListenError = true };
+            WebSocketServer server = new($"ws://{WsConfig.Host}:{WsConfig.Port}") { RestartAfterListenError = true };
 
             server.Start(socket => {
                 if (Authorization.CheckAuthorizationHeader(socket))
@@ -71,17 +72,18 @@ namespace ASF_OneBot.Host
                     ASFLogger.LogGenericWarning(string.Format(CurrentCulture, Langs.WSClientAuthFailed, socket.GetHashCode()));
                     socket.Close((int)RetCodeEnums.RetCode.BadRequest);
                 }
-
-
-
-
             });
 
-            ASFLogger.LogGenericInfo($"CQHTTP WS主机已经开始在ws://{config.Host}:{config.Port}上监听。");
+            ASFLogger.LogGenericInfo("正向WebSocket主机已启动");
+
+            if (WsConfig.CompatibleWithV11)
+            {
+                ASFLogger.LogGenericWarning("兼容模式已开启, 该模式下仅允许上线单个Bot, 如果需要支持多个Bot请等待推出适配器.");
+            }
 
         }
 
-        internal static async Task StopWsServer()
+        internal static void StopWsServer()
         {
             if (WsServer == null)
             {
@@ -98,36 +100,55 @@ namespace ASF_OneBot.Host
 
             try
             {
-                var data = JsonConvert.DeserializeObject<BaseRequest>(message, new JsonRequestConverter());
-
-                string echo = data.Echo;
-                string action = data.Action;
-
-
-
-                json = echo;
-
+                json = await ApiDispatcher.CallAction(message).ConfigureAwait(false);
             }
-            catch (JsonReaderException e)
+
+            catch (UnsupportAction e)
             {
                 BaseResponse errorResponse = new() {
                     Status = "failed",
-                    RetCode = (int)RetCodeEnums.RetCode.BadRequest,
-                    Message = "Json dencode failed.",
-                    Data = e.ToString()
+                    RetCode = (int)RetCodeEnums.RetCode.UnsupportedAction,
+                    Message = "Unsupport Action",
+                    Data = e.Message,
+                    Wording = "暂不支持的 API 动作"
                 };
 
                 json = JsonConvert.SerializeObject(errorResponse);
             }
 
+            catch (BotNotFound e)
+            {
+                BaseResponse errorResponse = new() {
+                    Status = "failed",
+                    RetCode = (int)RetCodeEnums.RetCode.BadParam,
+                    Message = "Target bot not found",
+                    Data = e.Message,
+                    Wording = "找不到目标Bot, 请考虑打开兼容模式, 或者在请求中带上 self_id 指定Bot"
+                };
+                json = JsonConvert.SerializeObject(errorResponse);
+            }
+
+            catch (JsonReaderException e)
+            {
+                BaseResponse errorResponse = new() {
+                    Status = "failed",
+                    RetCode = (int)RetCodeEnums.RetCode.BadRequest,
+                    Message = "Json dencode failed",
+                    Data = e.Message,
+                    Wording = "Json解码失败"
+                };
+                json = JsonConvert.SerializeObject(errorResponse);
+            }
             catch (Exception e)
             {
                 BaseResponse errorResponse = new() {
                     Status = "failed",
                     RetCode = (int)RetCodeEnums.RetCode.InternalHandlerError,
-                    Message = "Something went wrong",
-                    Data = e.ToString()
+                    Message = "Unknown Error",
+                    Data = e.Message,
+                    Wording = "未知异常"
                 };
+                ASFLogger.LogNullError(e.ToString());
 
                 json = JsonConvert.SerializeObject(errorResponse);
             }
@@ -156,8 +177,7 @@ namespace ASF_OneBot.Host
                 Sockets.Remove(socket);
             }
             ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.WSClientConnectionFailed, socket.GetHashCode(), ClientCount));
+            ASFLogger.LogGenericDebug(error.ToString());
         }
-
-
     }
 }

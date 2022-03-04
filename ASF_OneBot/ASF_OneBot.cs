@@ -1,7 +1,10 @@
 using ArchiSteamFarm.Plugins.Interfaces;
 using ArchiSteamFarm.Steam;
+using ASF_OneBot.Data.Events.Message;
+using ASF_OneBot.Host;
 using ASF_OneBot.Localization;
 using ASF_OneBot.Storage;
+using Fleck;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
@@ -10,7 +13,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading.Tasks;
 using static ASF_OneBot.Utils;
-using ASF_OneBot.Host;
 
 namespace ASF_OneBot
 {
@@ -24,9 +26,8 @@ namespace ASF_OneBot
         [JsonProperty]
         public Config? OneBotConfig => Global.GlobalConfig;
 
-        private static Dictionary<ulong, Bot> OnlineBots => Global.OnlineBots;
-
-        internal readonly Dictionary<string, IBot> RegisteredAdapter = new();
+        static private Dictionary<ulong, Tuple<Bot, IWebSocketConnection>> WsOnlineBots => Global.WsOnlineBots;
+        static private Dictionary<ulong, Bot> ReWsOnlineBots => Global.ReWsOnlineBots;
 
         public Task OnLoaded()
         {
@@ -77,27 +78,50 @@ namespace ASF_OneBot
 
             if (config.WSConfig.Enable)
             {
-                SocketConfig wsConfig = config.WSConfig;
+                WsSocketConfig wsConfig = config.WSConfig;
 
-                await WebSocketHost.StartWsServer(wsConfig).ConfigureAwait(false);
+                await WebSocketHost.StartWsServer().ConfigureAwait(false);
 
                 ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.WebSocketEnabled, wsConfig.Host, wsConfig.Port));
             }
 
             if (config.ReWSConfig.Enable)
             {
-                SocketConfig reWsConfig = config.ReWSConfig;
+                ReWsSocketConfig reWsConfig = config.ReWSConfig;
 
                 ASFLogger.LogGenericError(string.Format(CurrentCulture, Langs.NotSupportedYet));
 
                 //ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.ReWebSocketEnabled, reWsConfig.Host, reWsConfig.Port));
             }
         }
-        public Task<string> OnBotMessage(Bot bot, ulong steamID, string message)
+        public async Task<string> OnBotMessage(Bot bot, ulong steamID, string message)
         {
+            PrivateMessageEvent pmEvent = new() {
+                Message = message,
+                RawMessage = message,
+                SelfID = (long)bot.SteamID,
+                SubType = "friend",
+                Sender = new() {
+                    NickName = "未知",
+                    UserID = (long)steamID
+                }
+            };
+
+            //if (WsOnlineBots.TryGetValue(bot.SteamID, out Tuple<Bot, IWebSocketConnection> data))
+            //{
+            if (WebSocketHost.Sockets.Count > 0)
+            {
+                IWebSocketConnection? socket = WebSocketHost.Sockets[0];
+
+                string feedback = JsonConvert.SerializeObject(pmEvent);
+
+                await socket.Send(feedback).ConfigureAwait(false);
+            }
+            //};
+
             ASFLogger.LogGenericInfo($"{bot.Nickname} {steamID} {message}");
 
-            return null;
+            return "";
         }
         public async Task<string> OnBotCommand(Bot bot, EAccess access, string message, string[] args, ulong steamID = 0)
         {
@@ -105,18 +129,51 @@ namespace ASF_OneBot
         }
         public Task OnBotLoggedOn(Bot bot)
         {
+            ///<summary>正向连接</summary>
+            void AddWs()
+            {
+                WsSocketConfig wsCfg = OneBotConfig.WSConfig;
+                if (wsCfg.Enable)
+                {
+                    if (WsOnlineBots.Count >= 1)
+                    {
+                        if (wsCfg.CompatibleWithV11)
+                        {
+                            ASFLogger.LogGenericWarning(string.Format(CurrentCulture, "当前处于兼容模式, 正向WS只允许上线一个Bot, 已忽略."));
+                            return;
+
+                        }
+                    }
+                    WsOnlineBots[bot.SteamID] = new(bot, null);
+                    ASFLogger.LogGenericInfo(string.Format(CurrentCulture, "正向WS: 机器人 {0} 已上线", bot.BotName));
+                }
+            }
+            ///<summary>反向连接</summary>
+            void AddReWs()
+            {
+                ReWsSocketConfig reWsCfg = OneBotConfig.ReWSConfig;
+                if (reWsCfg.Enable)
+                {
+                    //TODO
+                }
+            }
+
             if (OneBotConfig.WhiteListMode)
             {
+                //白名单模式
                 if (OneBotConfig.BotNameList.Contains(bot.BotName))
                 {
-                    OnlineBots[bot.SteamID] = bot;
+                    AddWs();
+                    AddReWs();
                 }
             }
             else
             {
+                //黑名单模式
                 if (!OneBotConfig.BotNameList.Contains(bot.BotName))
                 {
-                    OnlineBots[bot.SteamID] = bot;
+                    AddWs();
+                    AddReWs();
                 }
             }
 
@@ -126,9 +183,16 @@ namespace ASF_OneBot
         public Task OnBotDisconnected(Bot bot, EResult reason)
         {
             ulong steamID = bot.SteamID;
-            if (OnlineBots.ContainsKey(steamID))
+            if (WsOnlineBots.ContainsKey(steamID))
             {
-                OnlineBots.Remove(steamID);
+                WsOnlineBots.Remove(steamID);
+                ASFLogger.LogGenericInfo(string.Format(CurrentCulture, "正向WS: 机器人 {0} 已下线", bot.BotName));
+            }
+            if (ReWsOnlineBots.ContainsKey(steamID))
+            {
+                ReWsOnlineBots.Remove(steamID);
+                ASFLogger.LogGenericInfo(string.Format(CurrentCulture, "正向WS: 机器人 {0} 已下线", bot.BotName));
+                ASFLogger.LogGenericInfo(string.Format(CurrentCulture, "反向WS: 机器人 {0} 已下线", bot.BotName));
             }
             return Task.CompletedTask;
         }

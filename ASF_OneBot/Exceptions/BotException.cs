@@ -24,4 +24,14 @@ namespace ASF_OneBot.Exceptions
 
         protected BotNotFound(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
+    internal class UnsupportAction : BotException
+    {
+        public UnsupportAction() { }
+
+        public UnsupportAction(string message) : base(message) { }
+
+        public UnsupportAction(string message, Exception innerException) : base(message, innerException) { }
+
+        protected UnsupportAction(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
 }

@@ -24,6 +24,9 @@ namespace ASF_OneBot.Data.Responses
 
         [JsonProperty("echo")]
         public string Echo { get; internal set; } = Guid.NewGuid().ToString("N");
+
+        [JsonProperty("wording")]
+        public string Wording { get; internal set; }
     }
 
 

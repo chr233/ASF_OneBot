@@ -25,7 +25,7 @@ namespace ASF_OneBot.Data.Events.Message
         [JsonProperty("font")]
         public int Font { get; internal set; } = 0;//v11
 
-        [JsonProperty("sender")]
+        [JsonIgnore]
         public object Sender { get; internal set; } = null;//v11
 
     }
