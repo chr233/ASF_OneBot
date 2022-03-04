@@ -9,20 +9,22 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading.Tasks;
-using ASF_OneBot.API;
 using static ASF_OneBot.Utils;
+using ASF_OneBot.Host;
 
 namespace ASF_OneBot
 {
 
     [Export(typeof(IPlugin))]
-    internal sealed class ASF_OneBot : IASF, IBotCommand2, IBot, IBotConnection, IBotFriendRequest, IBotMessage, IBotModules
+    internal sealed class ASF_OneBot : IASF, IBotCommand2, IBot, IBotConnection, IBotFriendRequest, IBotMessage
     {
         public string Name => nameof(ASF_OneBot);
         public Version Version => Global.Version;
 
         [JsonProperty]
         public Config? OneBotConfig => Global.GlobalConfig;
+
+        private static Dictionary<ulong, Bot> OnlineBots => Global.OnlineBots;
 
         internal readonly Dictionary<string, IBot> RegisteredAdapter = new();
 
@@ -77,7 +79,7 @@ namespace ASF_OneBot
             {
                 SocketConfig wsConfig = config.WSConfig;
 
-                await WebSocketHost.Start(wsConfig).ConfigureAwait(false);
+                await WebSocketHost.StartWsServer(wsConfig).ConfigureAwait(false);
 
                 ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.WebSocketEnabled, wsConfig.Host, wsConfig.Port));
             }
@@ -91,54 +93,60 @@ namespace ASF_OneBot
                 //ASFLogger.LogGenericInfo(string.Format(CurrentCulture, Langs.ReWebSocketEnabled, reWsConfig.Host, reWsConfig.Port));
             }
         }
+        public Task<string> OnBotMessage(Bot bot, ulong steamID, string message)
+        {
+            ASFLogger.LogGenericInfo($"{bot.Nickname} {steamID} {message}");
 
+            return null;
+        }
         public async Task<string> OnBotCommand(Bot bot, EAccess access, string message, string[] args, ulong steamID = 0)
         {
             return null;
         }
-
-        public Task OnBotDestroy(Bot bot)
+        public Task OnBotLoggedOn(Bot bot)
         {
+            if (OneBotConfig.WhiteListMode)
+            {
+                if (OneBotConfig.BotNameList.Contains(bot.BotName))
+                {
+                    OnlineBots[bot.SteamID] = bot;
+                }
+            }
+            else
+            {
+                if (!OneBotConfig.BotNameList.Contains(bot.BotName))
+                {
+                    OnlineBots[bot.SteamID] = bot;
+                }
+            }
+
             return Task.CompletedTask;
         }
 
         public Task OnBotDisconnected(Bot bot, EResult reason)
         {
+            ulong steamID = bot.SteamID;
+            if (OnlineBots.ContainsKey(steamID))
+            {
+                OnlineBots.Remove(steamID);
+            }
             return Task.CompletedTask;
         }
 
         public Task<bool> OnBotFriendRequest(Bot bot, ulong steamID)
         {
-            return Task.FromResult(true);
+            return Task.FromResult(false);
         }
 
 
         public Task OnBotInit(Bot bot)
         {
-
-
             return Task.CompletedTask;
         }
-
-        public async Task OnBotInitModules(Bot bot, IReadOnlyDictionary<string, JToken> additionalConfigProperties = null)
-        {
-            bot.ArchiLogger.LogGenericInfo("Pausing this bot as asked from the plugin");
-            await bot.Actions.Pause(true).ConfigureAwait(false);
-        }
-
-        public Task OnBotLoggedOn(Bot bot)
+        public Task OnBotDestroy(Bot bot)
         {
             return Task.CompletedTask;
         }
-
-
-        public Task<string> OnBotMessage(Bot bot, ulong steamID, string message)
-        {
-            bot.ArchiLogger.LogGenericTrace("Hey boss, we got some unknown message here!");
-            return Task.FromResult("I didn't get that, did you mean to use a command?");
-        }
-
-
 
     }
 }

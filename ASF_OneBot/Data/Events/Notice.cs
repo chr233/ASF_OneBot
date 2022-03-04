@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ASF_OneBot.API.Callback
+namespace ASF_OneBot.Data.Events
 {
-    internal static class SocketOnClose
+    internal class Notice
     {
-
     }
 }

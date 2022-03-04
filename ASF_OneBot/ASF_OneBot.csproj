@@ -44,6 +44,11 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Data\Events\Notice\" />
+	  <Folder Include="Data\Events\Request\" />
+	</ItemGroup>
+
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="../debug.bat" />
 	</Target>

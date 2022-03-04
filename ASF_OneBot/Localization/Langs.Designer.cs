@@ -186,7 +186,7 @@ namespace ASF_OneBot.Localization {
         }
         
         /// <summary>
-        ///   查找类似 WS客户端 {0} 鉴权失败, 拒绝连接, 连接数 {1} 的本地化字符串。
+        ///   查找类似 客户端 {0} 鉴权失败, 请检查 AccessToken 配置是否正确. 的本地化字符串。
         /// </summary>
         internal static string WSClientAuthFailed {
             get {
@@ -195,7 +195,7 @@ namespace ASF_OneBot.Localization {
         }
         
         /// <summary>
-        ///   查找类似 WS客户端 {0} 连接成功, 连接数 {1} 的本地化字符串。
+        ///   查找类似 客户端 {0} 连接成功, 当前连接数 {1} 的本地化字符串。
         /// </summary>
         internal static string WSClientConnected {
             get {
@@ -204,7 +204,16 @@ namespace ASF_OneBot.Localization {
         }
         
         /// <summary>
-        ///   查找类似 WS客户端 {0} 断开连接, 连接数 {1} 的本地化字符串。
+        ///   查找类似 客户端 {0} 连接出错, 当前连接数 {1} 的本地化字符串。
+        /// </summary>
+        internal static string WSClientConnectionFailed {
+            get {
+                return ResourceManager.GetString("WSClientConnectionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 客户端 {0} 断开连接, 当前连接数 {1} 的本地化字符串。
         /// </summary>
         internal static string WSClientDisconnected {
             get {
